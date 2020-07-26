@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>教务管理系统主页</title>
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" th:href="@{/webjars/toastr/2.1.2/build/toastr.css}" >
+    <link href="/css/simple-line-icons.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body class="app header-fixed sidebar-fixed aside-menu-fixed aside-menu-hidden">
+<div th:replace="~{common/bar :: topbar}"></div>
+<div class="app-body">
+    <div th:replace="~{common/bar :: sidebar}"></div>
+    <main class="main">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa fa-align-justify"></i> 考试场次
+                </div>
+
+                <div class="card-block">
+                    <table class="table table-striped text-center">
+                        <thead>
+                        <tr>
+                            <th>考试编号</th>
+                            <th>课程名称</th>
+                            <th>考试地点</th>
+                            <th>日期</th>
+                            <th>考试时间</th>
+                            <th>考查方式</th>
+                            <th>操作</th>
+                        </tr>
+                        </thead>
+                        <tbody id="examPage">
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+
+    </main>
+</div>
+
+<script src="/assets/js/libs/jquery.min.js"></script>
+<script src="/assets/js/libs/tether.min.js"></script>
+<script src="/assets/js/libs/bootstrap.min.js"></script>
+<script src="/js/app.js"></script>
+<script th:src="@{/webjars/toastr/2.1.2/build/toastr.min.js}"></script>
+<script>
+    /*加载完成时获取课程第一页*/
+    $(function () {
+       getExams();
+    })
+
+
+    function getExams() {
+        $.ajax({
+            type:"get",
+            url:"/teacher/getTechExams",
+            success:function (result) {
+                $("#examPage").empty();
+                displayTable(result);
+            }
+        })
+    }
+
+
+    function displayTable(result) {
+        /*一页学生的list集合*/
+        let examList = result.data;
+        for (var i=0;i<examList.length;i++){
+            var id = examList[i].id;
+            var row = "<tr class='stuText'>" +
+                "<td>"+examList[i].id+"</td>" +
+                "<td>"+examList[i].course.name+"</td>" +
+                "<td>"+examList[i].address+"</td>" +
+                "<td>"+examList[i].exam_date+"</td>" +
+                "<td>"+examList[i].start_time+"至"+examList[i].end_time+"</td>" +
+                "<td id='methods"+examList[i].id+"'></td>" +
+                "<td>" +
+                "<button onclick='toUpdateScore("+examList[i].course.id+")' class=\"btn btn-sm btn-success\">成绩录入</button>" +
+                "<button onclick='toDelete("+examList[i].id+")' class=\"btn btn-sm btn-danger\">删除</button>" +
+                "</td>" +
+                "</tr>"
+            $("#examPage").append(row);
+            if (examList[i].methods == 1){
+                $('#methods'+id).text('考查');
+            }else if (examList[i].methods == 2){
+                $('#methods'+id).text('开卷考试');
+            }else {
+                $('#methods'+id).text('闭卷考试');
+            }
+        }
+    }
+
+    function toDelete(exam_id) {
+        $.ajax({
+            type: "post",
+            url: "/teacher/deleteExam",
+            data: {_method:"delete","exam_id":exam_id},
+            success:function (result) {
+                getExams();
+                toastr.success(result.message)
+            }
+        })
+    }
+
+    function toUpdateScore(course_id) {
+        window.location.href="/teacher/updateScore/"+course_id;
+    }
+
+</script>
+</body>
+<style>
+    th{
+        text-align: center;
+    }
+</style>
+</html>

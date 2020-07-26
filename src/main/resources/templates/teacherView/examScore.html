@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>学籍信息</title>
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" th:href="@{/webjars/toastr/2.1.2/build/toastr.css}" >
+    <link href="/css/simple-line-icons.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body class="app header-fixed sidebar-fixed aside-menu-fixed aside-menu-hidden">
+<!--		引入顶部-->
+<div th:replace="~{common/bar :: topbar}"></div>
+<div class="app-body">
+    <div th:replace="~{common/bar :: sidebar}"></div>
+    <main class="main">
+        <input id="course_id" type="hidden" th:value="${course.id}">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa fa-align-justify"></i> 学生成绩更新:<span th:text="${course.name}"></span>
+                </div>
+                <div class="table-responsive text-center">
+                    <table class="table table-striped table-sm" >
+                        <thead>
+                        <tr>
+                            <th>学号</th>
+                            <th>姓名</th>
+                            <th>学院专业班级</th>
+                            <th>分数</th>
+                        </tr>
+                        </thead>
+                        <tbody id="scorePage">
+                            <tr th:each="student : ${students}">
+                                <td th:text="${student.username}"></td>
+                                <td th:text="${student.name}"></td>
+                                <td th:text="${student.department.iterator().next()}"></td>
+                                <td>
+                                    <input name="uid" th:value="${student.uid}" type="hidden" required>
+                                    <input th:id="${student.uid}" name="score" type="text">
+                                    <input name="course_id" type="hidden" th:value="${course.id}">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <button type="button" onclick="saveVari()">保存</button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+
+<script src="/assets/js/libs/jquery.min.js"></script>
+<script src="/assets/js/libs/tether.min.js"></script>
+<script src="/assets/js/libs/bootstrap.min.js"></script>
+<script src="/js/app.js"></script>
+<script th:src="@{/webjars/toastr/2.1.2/build/toastr.min.js}"></script>
+
+
+
+<script>
+
+    $(function () {
+
+        getScore();
+
+    })
+
+
+    function getScore() {
+        $.ajax({
+            type:"get",
+            url:"/teacher/getScores",
+            data:{'course_id':$("#course_id").val()},
+            success:function (result) {
+                console.log(result)
+                var scoreModel = result.data;
+                for (var i=0;i<=scoreModel.length;i++){
+                    var uid = scoreModel[i].uid;
+                    if (scoreModel[i].score != ''){
+                        $('#'+uid).val(scoreModel[i].score).attr("disabled",true);
+                    }
+                }
+            }
+        })
+    }
+
+    function saveVari() {
+        var objArray = new Array();
+        //获取tbody下的所有tr原素
+        var tr = $("#scorePage").find("tr");
+        //循环tr原素
+        $.each(tr, function (i, f) {
+            //找到所有input
+            var inputs = $(f).find('input');
+            //新建对象
+            var obj = {};
+            //循环所有inputs，把input中的name和value变成对象中的属性和值
+            for (var j = 0; j < inputs.length; j++) {
+                var o = inputs[j];
+                obj[ $(o).attr('name') ] = $(o).val();
+            }
+            //将对象放入对象数组
+            objArray.push(obj);
+        });
+
+        console.log(objArray)
+        $.ajax({
+            type:"post",
+            url:"/teacher/saveScores",
+            contentType: "application/json; charset=utf-8",
+            dataType:"json",
+            data:JSON.stringify(objArray),
+            success:function (result) {
+                getScore();
+                toastr.success(result.message)
+            }
+        })
+    }
+
+
+
+</script>
+
+
+
+</body>
+<style>
+    th{
+        text-align: center;
+    }
+</style>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<!-- saved from url=(0052)http://getbootstrap.com/docs/4.0/examples/dashboard/ -->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>教务管理系统主页</title>
+
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" th:href="@{/webjars/toastr/2.1.2/build/toastr.css}" >
+    <link href="/css/simple-line-icons.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+
+</head>
+<body class="app header-fixed sidebar-fixed aside-menu-fixed aside-menu-hidden">
+<!--		引入顶部-->
+<div th:replace="~{common/bar :: topbar}"></div>
+<div class="app-body">
+    <div th:replace="~{common/bar :: sidebar}"></div>
+    <main class="main">
+
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>课程发布</h5>
+                </div>
+                <div class="card-block">
+                        <form  method="post" th:action="@{/teacher/addcourse}" >
+                            <input type="hidden" name="_method" th:if="${course!=null}" th:value="put" required>
+                            <input type="hidden" name="id" th:if="${course!=null}" th:value="${course.id}" required/>
+                            <div class="form-group ">
+                                <label class=" col-lg-2">课程名称</label>
+                                <br>
+                                <br>
+                                    <input class="form-control" th:value="${course!=null}?${course.name}" id="name" name="name" type="text" required>
+                            </div>
+                            <div class="form-group ">
+                                <label  class=" col-lg-2">学分</label>
+                                    <input class=" form-control" th:value="${course!=null}?${course.credit}" id="credit" name="credit" type="text" required>
+                            </div>
+                            <div class="form-group ">
+                                <label  class=" col-lg-2">课时</label>
+                                    <input class="form-control" th:value="${course!=null}?${course.hours}" id="hours" name="hours" type="text" required>
+                            </div>
+
+
+                            <div class="form-group">
+                                <input type="hidden" id="course0" th:value="0" th:if="${course==null}" />
+                                <input type="hidden" id="typeId"  th:value="${course!=null}?${course.courseType.id}"/>
+                                <input type="hidden" id="typeName" th:value="${course!=null}?${course.courseType.type}"/>
+                                <input type="hidden" id="techId" th:value="${course!=null}?${course.user.uid}"/>
+                                <input type="hidden" id="techName" th:value="${course!=null}?${course.user.name}"/>
+
+
+                                <label  class=" col-lg-2">课程类型</label>
+                                <br>
+                                <br>
+
+                                <select id="select_type" name="courseType.id"  class="form-control col-sm-2 " style="height: 35px" required>
+                                </select>
+                            </div>
+                            <!--  默认状态为未发布  不可选  -->
+                            <input type="hidden" value="0" name="status"/>
+                            <br>
+                            <br>
+                            <div class="form-group">
+                                    <button class="btn btn-success btn-sm " th:text="${course==null}?'发布':'修改'" type="submit">发布</button>
+                                    <a class="btn btn-default btn-sm" th:href="@{/coursepub}" type="button">取消</a>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+    </main>
+</div>
+<script src="/assets/js/libs/jquery.min.js"></script>
+<script src="/assets/js/libs/tether.min.js"></script>
+<script src="/assets/js/libs/bootstrap.min.js"></script>
+<script src="/js/app.js"></script>
+
+
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+
+<script>
+    $(function () {
+
+        var editCourse = $("#course0").val();
+        var typeId = $("#typeId").val();
+        var typeName = $("#typeName").val();
+        var techId = $("#techId").val();
+        var techName = $("#techName").val();
+
+        $.ajax({
+            type:"get",
+            url:"/teacher/getTypes",
+            dataType:"json",
+            async:false,
+            success:function (types) {
+                if (editCourse == 0){
+                    $("#select_type").html("<option value=''>-- 请选择课程类型 --</option>")
+                    for (let i = 0;i<types.length;i++){
+                            let option = $("<option></option>").text(types[i].type);
+                            option.attr("value",types[i].id);
+                            $("#select_type").append(option);
+                    }
+                }else {
+                    var option0 = $("<option></option>").text(typeName);
+                    option0.attr("value",typeId);
+                    $("#select_type").append(option0);
+                    for (let i = 0;i<types.length;i++){
+                        if (typeId != types[i].id) {
+                            var option = $("<option></option>").text(types[i].type);
+                            option.attr("value", types[i].id);
+                            $("#select_type").append(option);
+                        }
+                    }
+                }
+
+            }
+        })
+    })
+</script>
+
+</body>
+
+</html>
+</body>
+</html>

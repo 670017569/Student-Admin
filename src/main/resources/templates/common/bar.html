@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"  xmlns:shiro="http://www.thymeleaf.org/thymeleaf-extras-shiro">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<header class="app-header navbar" th:fragment="topbar">
+    <button class="navbar-toggler mobile-sidebar-toggler hidden-lg-up" type="button">☰</button>
+    <a class="navbar-brand" href="#"></a>
+    <ul class="nav navbar-nav hidden-md-down">
+        <li class="nav-item">
+            <a class="nav-link navbar-toggler sidebar-toggler" href="#">☰</a>
+        </li>
+    </ul>
+    <ul class="nav navbar-nav ml-auto">
+
+
+        <li class="nav-item hidden-md-down">
+            <a class="nav-link" href="#"><i class="icon-location-pin"></i></a>
+        </li>
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle nav-link" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
+                <span class="hidden-md-down" th:text="${session.loginUser.name}"></span>
+            </a>
+            <div class="dropdown-menu dropdown-menu-right">
+                <div class="dropdown-header text-center">
+                    <strong>账户信息</strong>
+                </div>
+                <a class="dropdown-item" href="#"><i class="fa fa-user"></i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;个人信息</a>
+                <a class="dropdown-item" href="#"><i class="fa fa-wrench"></i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;消息提醒</a>
+                <a class="dropdown-item" href="#"><i class="fa fa-usd"></i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;修改密码</a>
+                <a class="dropdown-item" href="#"><i class="fa fa-shield"></i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;注销账户</a>
+                <a class="dropdown-item" th:href="@{/logout}"><i class="fa fa-lock"></i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;退出</a>
+            </div>
+        </li>
+        <li class="nav-item hidden-md-down"></li>
+
+    </ul>
+</header>
+<div class="app-body">
+    <div class="sidebar" th:fragment="sidebar">
+        <nav class="sidebar-nav">
+            <ul class="nav">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/main.html}"><i class="icon-speedometer"></i> 主页 </a>
+                </li>
+
+                <li  shiro:hasRole="student" class="nav-item nav-dropdown">
+                    <a class="nav-link nav-dropdown-toggle" href="#"><i class="icon-paper-clip"></i> 课程管理</a>
+                    <ul class="nav-dropdown-items">
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/student/courses}"><i class="icon-chart"></i> 选课管理 </a>
+                        </li>
+
+                    </ul>
+                </li>
+
+                <li  shiro:hasRole="admin" class="nav-item nav-dropdown">
+                    <a class="nav-link nav-dropdown-toggle" href="#"><i class="icon-paper-clip"></i> 课程管理</a>
+                    <ul class="nav-dropdown-items">
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/admin/coursepub}"><i class="icon-paypal"></i> 课程发布</a>
+                        </li>
+                    </ul>
+                </li>
+
+                <li shiro:hasRole="teacher" class="nav-item nav-dropdown">
+                    <a class="nav-link nav-dropdown-toggle" href="#"><i class="icon-paper-clip"></i> 课程管理</a>
+                    <ul class="nav-dropdown-items">
+
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/teacher/teacherSelf}"><i class="icon-paypal"></i> 课程管理</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/teacher/courseClass}"><i class="icon-paypal"></i> 课程班级</a>
+                        </li>
+                    </ul>
+                </li>
+                <li shiro:hasRole="teacher" class="nav-item nav-dropdown" >
+                    <a class="nav-link nav-dropdown-toggle" href="#"><i class="icon-pencil"></i>考试管理</a>
+                    <ul class="nav-dropdown-items">
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/teacher/exams}"><i class="icon-star"></i>考试场次</a>
+                        </li>
+                    </ul>
+                </li>
+
+                <li shiro:hasRole="admin" class="nav-item nav-dropdown"  >
+                    <a class="nav-link nav-dropdown-toggle" href="#"><i class="icon-book-open"></i>学籍管理</a>
+                    <ul class="nav-dropdown-items">
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/admin/student}"><i class="icon-support"></i>学生入学</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/admin/students}"><i class="icon-paper-plane"></i>学籍列表</a>
+                        </li>
+                    </ul>
+                </li>
+
+
+                <li  shiro:hasRole="student" class="nav-item" >
+                    <a class="nav-link" th:href="@{/student/scores}"><i class="icon-calculator"></i> 成绩查询</a>
+                </li>
+                <li shiro:hasRole="admin" class="nav-item"  >
+                    <a class="nav-link" th:href="@{/admin/teachers}"><i class="icon-people"></i> 教师管理 </a>
+                </li>
+                <li  shiro:hasRole="student" class="nav-item">
+                    <a class="nav-link" th:href="@{/student/stuExams}"><i class="icon-pie-chart"></i> 考试查询</a>
+                </li>
+
+                <li shiro:hasRole="admin" class="nav-item nav-dropdown">
+                    <a class="nav-link nav-dropdown-toggle" href="#"><i class="icon-settings"></i> 系统设置(root)</a>
+                    <ul class="nav-dropdown-items">
+                        <li class="nav-item">
+                            <a class="nav-link" href="pages-login.html" target="_top"><i class="icon-settings"></i> 权限管理</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/admin/departments}" target="_top"><i class="icon-settings"></i> 部门管理</a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+</body>
+
+</html>

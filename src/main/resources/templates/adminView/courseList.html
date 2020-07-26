@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>教务管理系统主页</title>
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" th:href="@{/webjars/toastr/2.1.2/build/toastr.css}" >
+    <link href="/css/simple-line-icons.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body class="app header-fixed sidebar-fixed aside-menu-fixed aside-menu-hidden">
+<!--		引入顶部-->
+<div th:replace="~{common/bar :: topbar}"></div>
+<div class="app-body">
+    <div th:replace="~{common/bar :: sidebar}"></div>
+    <main class="main">
+
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa fa-align-justify"></i> 课程发布及状态管理
+                </div>
+
+                <div class="card-block">
+                    <table class="table table-striped text-center">
+                        <thead>
+                        <tr>
+                            <th>课程编号</th>
+                            <th>课程名称</th>
+                            <th>学分</th>
+                            <th>课时</th>
+                            <th>课程类型</th>
+                            <th>授课教师</th>
+                            <th>发布</th>
+
+                        </tr>
+                        </thead>
+                        <tbody id="stuPage">
+
+                        </tbody>
+                    </table>
+                    <ul class="pagination">
+                        <li class="page-item">
+                            <button  id="prePage" onclick="toPrePage()" class="page-link" href="#">上一页</button>
+                        </li>
+                        <li  class="page-item active">
+                            <a id="currentPage" class="page-link" href="#"></a>
+                        </li>
+                        <li  class="page-item">
+                            <button id="nextPage" onclick="toNextPage()"  class="page-link">下一页</button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+
+    </main>
+</div>
+
+<script src="/assets/js/libs/jquery.min.js"></script>
+<script src="/assets/js/libs/tether.min.js"></script>
+<script src="/assets/js/libs/bootstrap.min.js"></script>
+<script src="/js/app.js"></script>
+<script th:src="@{/webjars/toastr/2.1.2/build/toastr.min.js}"></script>
+<script>
+    /*加载完成时获取课程第一页*/
+    window.onload=function () {
+        $.ajax({
+            type:"get",
+            url:"/admin/getCourPage",
+            data:{pageNum:1,size:12},
+            success:function (result) {
+                displayTable(result);
+            }
+        })
+    }
+
+
+    function toNextPage() {
+        var nextPage = $("#nextPage").val();
+        if (nextPage != 0){
+            $.ajax({
+                type:"get",
+                url:"/admin/getCourPage",
+                data:{pageNum:nextPage,size:12},
+                success:function (result) {
+                    /*删除上一页的内容*/
+                    $(".stuText").remove();
+                    //展开学生表格数据
+                    displayTable(result);
+                }
+            })
+
+        }else {
+            toastr.success("到底了");
+        }
+    }
+    function toPrePage() {
+        var prePage = $("#prePage").val();
+        if (prePage != 0){
+            $.ajax({
+            type:"get",
+            url:"/admin/getCourPage",
+            data:{pageNum:prePage,size:12},
+            success:function (result) {
+                   /*删除上一页的内容*/
+                   $(".stuText").remove();
+                   //展开学生表格数据
+                   displayTable(result);
+            }
+        })
+    }else {
+        toastr.success("这就是第一页！")
+    }
+    }
+    function displayTable(result) {
+        /*一页学生的list集合*/
+        let stuList = result.data.list;
+        /*当前页码*/
+        let pageNum = result.data.pageNum;
+        /*总页数*/
+        let pages = result.data.pages;
+        /*上一页*/
+        let prePage = result.data.prePage;
+        /*下一页*/
+        let nextPage = result.data.nextPage;
+        for (var i=0;i<stuList.length;i++){
+            var id = stuList[i].id;
+            var row = "<tr class='stuText'>" +
+                "<td>"+stuList[i].id+"</td>" +
+                "<td>"+stuList[i].name+"</td>" +
+                "<td>"+stuList[i].credit+"</td>" +
+                "<td>"+stuList[i].hours+"</td>" +
+                "<td>"+stuList[i].courseType.type+"</td>" +
+                "<td>"+stuList[i].user.name+"</td>" +
+                "<td>"+
+                "<label class='lyear-switch  switch-solid switch-success'>"+
+                "<label class='switch switch-3d switch-success'>" +
+                "<input id='statu"+stuList[i].id+ "'type='checkbox' onclick='changeStatus("+stuList[i].id+")' name='status' type='checkbox' class='switch-input' >" +
+                "<span class='switch-label'></span>" +
+                "<span class='switch-handle'></span>" +
+                "</label>"+
+                "</td>"+
+                "<button onclick='toDelete("+stuList[i].id+")' class=\"btn btn-sm btn-danger\">删除</button></td></tr>"
+            $("#stuPage").append(row);
+            if (stuList[i].status == 1){
+                $('#statu'+id).prop('checked','checked')
+            }
+        }
+        //底部插入页面相关按钮
+        $("#prePage").val(prePage);
+        $("#nextPage").val(nextPage);
+        $("#currentPage").text(pageNum+"/"+pages);
+
+
+    }
+
+
+    function changeStatus(course_id) {
+        var url = $('#statu'+course_id).prop('checked')?"/admin/changeStatus1":"/admin/changeStatus0";
+        $.ajax({
+            type:"post",
+            url:url,
+            data:{ _method:"put","course_id":course_id},
+            async:true,
+            dataType:"json",
+            // cache:false,
+            success:function (data) {
+
+            }
+        })
+    }
+
+
+
+
+    function toDelete(course_id) {
+        $.ajax({
+            type:"post",
+            url:"/admin/course",
+            data:{_method:"delete", "course_id":course_id},
+            success:function (data) {
+                alert("删除成功");
+                var route = window.location.href
+                window.location.replace(route);
+            }
+        })
+    }
+
+
+
+
+
+
+</script>
+</body>
+<style>
+    th{
+        text-align: center;
+    }
+</style>
+</html>

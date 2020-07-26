@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<!-- saved from url=(0052)http://getbootstrap.com/docs/4.0/examples/dashboard/ -->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>教务管理系统主页</title>
+
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" th:href="@{/webjars/toastr/2.1.2/build/toastr.css}" >
+    <link href="/css/simple-line-icons.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body class="app header-fixed sidebar-fixed aside-menu-fixed aside-menu-hidden">
+<!--		引入顶部-->
+<div th:replace="~{common/bar :: topbar}"></div>
+<div class="app-body">
+    <div th:replace="~{common/bar :: sidebar}"></div>
+    <main class="main">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa fa-align-justify"></i> 教师信息查询
+                    <a class="btn btn-success btn-sm float-right" th:href="@{/admin/teacher}">添加</a>
+                </div>
+                <div class="card-block">
+                    <table class="table table-striped text-center">
+                        <thead>
+                        <tr>
+                            <th>教师编号</th>
+                            <th>姓名</th>
+                            <th>性别</th>
+                            <th>账号</th>
+                            <th>生日</th>
+                            <th>职称</th>
+                            <th>操作</th>
+                        </tr>
+                        </thead>
+                        <tbody id="stuPage">
+
+                        </tbody>
+                    </table>
+                    <ul class="pagination">
+                        <li class="page-item">
+                            <button  id="prePage" onclick="toPrePage()" class="page-link" href="#">上一页</button>
+                        </li>
+                        <li  class="page-item active">
+                            <a id="currentPage" class="page-link" href="#"></a>
+                        </li>
+                        <li  class="page-item">
+                            <button id="nextPage" onclick="toNextPage()"  class="page-link">下一页</button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+
+    </main>
+</div>
+
+
+<script src="/assets/js/libs/jquery.min.js"></script>
+<script src="/assets/js/libs/tether.min.js"></script>
+<script src="/assets/js/libs/bootstrap.min.js"></script>
+<script src="/js/app.js"></script>
+<script th:src="@{/webjars/toastr/2.1.2/build/toastr.min.js}"></script>
+
+
+<script>
+    /*加载完成时获取课程第一页*/
+    window.onload=function () {
+       getAllTech()
+    }
+
+    function getAllTech() {
+        $.ajax({
+            type:"get",
+            url:"/admin/getUserByRole",
+            data:{pageNum:1,pageSize:15,role_id:2},
+            success:function (result) {
+                $("#stuPage").empty();
+                displayTable(result);
+            }
+        })
+    }
+
+    function toNextPage() {
+        var nextPage = $("#nextPage").val();
+
+        if(nextPage != 0){
+        $.ajax({
+            type:"get",
+            url:"/admin/getUserByRole",
+            data:{pageNum:nextPage,pageSize:15,role_id:2},
+            success:function (result) {
+                /*删除上一页的内容*/
+                $(".stuText").remove();
+                //展开学生表格数据
+                displayTable(result);
+            }
+        })
+        }else {
+            toastr.success("这就是最后一页")
+        }
+    }
+    function toPrePage() {
+        var prePage = $("#prePage").val();
+        if (prePage != 0){
+        $.ajax({
+            type:"get",
+            url:"/admin/getUserByRole",
+            data:{pageNum:prePage,pageSize:15,role_id:2},
+            success:function (result) {
+                /*删除上一页的内容*/
+                $(".stuText").remove();
+                //展开学生表格数据
+                displayTable(result);
+            }
+        })
+        }else {
+        toastr.success("不能再往前翻了")
+    }
+    }
+    function displayTable(result) {
+        /*一页学生的list集合*/
+        let stuList = result.data.list;
+
+        /*当前页码*/
+        let pageNum = result.data.pageNum;
+        /*总页数*/
+        let pages = result.data.pages;
+        /*上一页*/
+        let prePage = result.data.prePage;
+        /*下一页*/
+        let nextPage = result.data.nextPage;
+
+
+        for (var i=0;i<stuList.length;i++){
+            let techGender = stuList[i].gender==1?'男':'女';
+            var id = stuList[i].uid;
+            var row = "<tr class='stuText'>" +
+                "<td>"+stuList[i].uid+"</td>" +
+                "<td>"+stuList[i].name+"</td>" +
+                "<td>"+techGender+"</td>" +
+                "<td>"+stuList[i].username+"</td>" +
+                "<td>"+stuList[i].birth+"</td>" +
+                "<td>"+stuList[i].techLevel.level+"</td>" +
+                "<td><button onclick='toEdit("+stuList[i].uid+")' class=\"btn btn-sm btn-primary\">编辑</button>" +
+                "<button onclick='toDelete("+stuList[i].uid+")' class=\"btn btn-sm btn-danger\">删除</button></td></tr>"
+            $("#stuPage").append(row);
+            if (stuList[i].status == 1){
+                $('#statu'+id).prop('checked','checked')
+            }
+        }
+        //底部插入页面相关按钮
+        $("#prePage").val(prePage);
+        $("#nextPage").val(nextPage);
+        $("#currentPage").text(pageNum+"/"+pages);
+
+
+    }
+
+
+
+
+    function toEdit(tech_id) {
+        window.location.href="/admin/teacher/"+tech_id;
+    }
+    function toDelete(uid) {
+        $.ajax({
+            type:"post",
+            url:"/admin/deleteUser",
+            data:{_method:"delete", "uid":uid},
+            success:function (result) {
+                toastr.success(result.message)
+                getAllTech()
+            }
+        })
+    }
+
+
+</script>
+
+</body>
+<style>
+    th{
+        text-align: center;
+    }
+</style>
+</html>

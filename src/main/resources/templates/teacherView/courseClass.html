@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>学籍信息</title>
+
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" th:href="@{/webjars/toastr/2.1.2/build/toastr.css}" >
+    <link href="/css/simple-line-icons.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body class="app header-fixed sidebar-fixed aside-menu-fixed aside-menu-hidden">
+<!--		引入顶部-->
+<div th:replace="~{common/bar :: topbar}"></div>
+<div class="app-body">
+    <div th:replace="~{common/bar :: sidebar}"></div>
+    <main class="main">
+
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa fa-align-justify"></i> 课程班级学生信息
+                    <select id="course">
+                        <option>请选择课程班级</option>
+                    </select><button type="button" onclick="query()">查询</button>
+                </div>
+                <div class="table-responsive text-center">
+                    <table class="table table-striped table-sm" >
+                        <thead>
+                        <tr>
+                            <th>学号</th>
+                            <th>姓名</th>
+                            <th>性别</th>
+                            <th>生日</th>
+                            <th>邮箱</th>
+                            <th>学院专业班级</th>
+                        </tr>
+                        </thead>
+                        <tbody  id="stuPage">
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            </div>
+        </div>
+
+
+    </main>
+</div>
+
+
+<script src="/assets/js/libs/jquery.min.js"></script>
+<script src="/assets/js/libs/tether.min.js"></script>
+<script src="/assets/js/libs/bootstrap.min.js"></script>
+<script src="/js/app.js"></script>
+<script th:src="@{/webjars/toastr/2.1.2/build/toastr.min.js}"></script>
+
+
+
+<script>
+
+    $(function () {
+        $.ajax({
+            type:"get",
+            url:"/teacher/getTechCourseSelect",
+            success:function (result) {
+                var courses = result.data;
+                for (var i = 0;i<courses.length;i++){
+                    var option = $("<option></option>").text(courses[i].name);
+                    option.attr("value",courses[i].id);
+                    $("#course").append(option);
+                }
+
+            }
+        })
+    })
+
+    function query() {
+        var course_id = $("#course").val();
+        $.ajax({
+            type:"get",
+            url:"/teacher/getStuInCourse",
+            data:{"course_id":course_id},
+            success:function (result) {
+                $(".stuText").empty();
+                displayTable(result)
+            }
+        })
+    }
+
+
+
+    function displayTable(result) {
+        /*一页学生的list集合*/
+        let stuList = result.data;
+        for (var i=0;i<stuList.length;i++){
+            var stuGender = stuList[i].gender == 1?"男":"女";
+            var row = "<tr class='stuText'><td>"+stuList[i].username+"</td>" +
+                "<td>"+stuList[i].name+"</td>" +
+                "<td>"+stuGender+"</td>" +
+                "<td>"+stuList[i].birth+"</td>" +
+                "<td>"+stuList[i].email+"</td>" +
+                "<td>"+stuList[i].department+"</td>" +
+                "</tr>"
+            $("#stuPage").append(row);
+        }
+
+
+    }
+
+
+
+</script>
+
+
+
+</body>
+<style>
+    th{
+        text-align: center;
+    }
+</style>
+</html>
